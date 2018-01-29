@@ -12,6 +12,16 @@ type delimiterBasedFrameConn struct {
 	w         *bufio.Writer
 }
 
+// NewDelimiterBasedFrameConn returns a Frame conn framed with delimiter.
+func NewDelimiterBasedFrameConn(delimiter byte, conn net.Conn) FrameConn {
+	return &delimiterBasedFrameConn{
+		delimiter: delimiter,
+		c:         conn,
+		r:         bufio.NewReader(conn),
+		w:         bufio.NewWriter(conn),
+	}
+}
+
 func (fc *delimiterBasedFrameConn) ReadFrame() ([]byte, error) {
 	var (
 		isPrefix bool

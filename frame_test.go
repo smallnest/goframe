@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/smallnest/log"
 )
 
 func TestFrameConn(t *testing.T) {
@@ -37,7 +39,8 @@ func TestFrameConn(t *testing.T) {
 		for {
 			conn, err := l.Accept()
 			if err != nil {
-				t.Fatal(err)
+				log.Error(err)
+				return
 			}
 
 			c := NewLengthFieldBasedFrameConn(encoderConfig, decoderConfig, conn)
@@ -48,7 +51,6 @@ func TestFrameConn(t *testing.T) {
 						if err == io.EOF {
 							return
 						}
-						t.Fatal(err)
 					}
 					fmt.Println(string(b))
 				}
