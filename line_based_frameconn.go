@@ -7,7 +7,7 @@ import (
 
 var (
 	// CRLFBytes is a const bytes for crlf.
-	CRLFBytes = []byte("\r\n")
+	CRLFBytes = []byte("\n")
 )
 
 type lineBasedFrameConn struct {
@@ -26,21 +26,21 @@ func NewLineBasedFrameConn(conn net.Conn) FrameConn {
 }
 
 func (fc *lineBasedFrameConn) ReadFrame() ([]byte, error) {
-	var (
-		isPrefix bool
-		err      error
-		line, ln []byte
-	)
+	// var (
+	// 	isPrefix bool
+	// 	err      error
+	// 	line, ln []byte
+	// )
 
-	for isPrefix && err == nil {
-		line, isPrefix, err = fc.r.ReadLine()
-		ln = append(ln, line...)
-		if err != nil {
-			return ln, err
-		}
-	}
+	// for isPrefix && err == nil {
+	// 	line, isPrefix, err = fc.r.ReadLine()
+	// 	ln = append(ln, line...)
+	// 	if err != nil {
+	// 		return ln, err
+	// 	}
+	// }
 
-	return ln, nil
+	return fc.r.ReadBytes('\n')
 }
 
 func (fc *lineBasedFrameConn) WriteFrame(p []byte) error {
