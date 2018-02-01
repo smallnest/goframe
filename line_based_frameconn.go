@@ -40,7 +40,12 @@ func (fc *lineBasedFrameConn) ReadFrame() ([]byte, error) {
 	// 	}
 	// }
 
-	return fc.r.ReadBytes('\n')
+	data, err := fc.r.ReadBytes('\n')
+	if err == nil && data[len(data)-1] == '\n' {
+		data = data[:len(data)-1]
+	}
+
+	return data, err
 }
 
 func (fc *lineBasedFrameConn) WriteFrame(p []byte) error {
