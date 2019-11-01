@@ -2,14 +2,13 @@ package goframe
 
 import (
 	"io"
+	"log"
 	"net"
 
 	"encoding/binary"
 	"fmt"
 	"testing"
 	"time"
-
-	"github.com/smallnest/libp2p/log"
 )
 
 func TestFrameConn(t *testing.T) {
@@ -39,7 +38,7 @@ func TestFrameConn(t *testing.T) {
 		for {
 			conn, err := l.Accept()
 			if err != nil {
-				log.Error(err)
+				log.Println(err)
 				return
 			}
 
