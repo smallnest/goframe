@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smallnest/log"
+	"github.com/smallnest/libp2p/log"
 )
 
 func TestFrameConn(t *testing.T) {
