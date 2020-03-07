@@ -69,13 +69,6 @@ func (fc *lengthFieldBasedFrameConn) ReadFrame() ([]byte, error) {
 		return nil, err
 	}
 
-	if fc.decoderConfig.LengthAdjustment > 0 { //discard adjust header
-		_, err := ReadN(fc.c, fc.decoderConfig.LengthAdjustment)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	// real message length
 	msgLength := int(frameLength) + fc.decoderConfig.LengthAdjustment
 	msg, err := ReadN(fc.r, msgLength)
