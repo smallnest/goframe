@@ -58,7 +58,7 @@ func (fc *lengthFieldBasedFrameConn) ReadFrame() ([]byte, error) {
 	var header []byte
 	var err error
 	if fc.decoderConfig.LengthFieldOffset > 0 { //discard header(offset)
-		header, err = ReadN(fc.c, fc.decoderConfig.LengthFieldOffset)
+		header, err = ReadN(fc.r, fc.decoderConfig.LengthFieldOffset)
 		if err != nil {
 			return nil, err
 		}
