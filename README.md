@@ -25,7 +25,7 @@ When you want to receve a frame, you use `ReadFrame`.
 ### examples
 
 Currently I have implemented some FrameConns that has same formats to Netty frame decoders and encoders.
-So we can use Go and popular netty framework to communicate. I have created [some examples](https://github.com/smallnest/goframe/_examples) to demonstrate it.
+So we can use Go and popular netty framework to communicate. I have created [some examples](https://github.com/smallnest/goframe/tree/master/_examples) to demonstrate it.
 
 Those examples contains client and server for both go and netty, so you can use any client and any server to start.
 
