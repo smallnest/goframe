@@ -90,33 +90,29 @@ func (fc *lengthFieldBasedFrameConn) getUnadjustedFrameLength() (lenBuf []byte, 
 		b, err := fc.r.ReadByte()
 		return []byte{b}, uint64(b), err
 	case 2:
-		lenBuf := make([]byte, 2)
-		_, err = fc.r.Read(lenBuf)
+		lenBuf, err = ReadN(fc.r,2)
 		if err != nil {
 			return nil, 0, err
 		}
 		return lenBuf, uint64(fc.decoderConfig.ByteOrder.Uint16(lenBuf)), nil
 	case 3:
-		lenBuf := make([]byte, 3)
-		_, err = fc.r.Read(lenBuf)
+		lenBuf, err = ReadN(fc.r,3)
 		if err != nil {
 			return nil, 0, err
 		}
 		return lenBuf, readUint24(fc.decoderConfig.ByteOrder, lenBuf), nil
 	case 4:
-		lenBuf := make([]byte, 4)
-		_, err = fc.r.Read(lenBuf)
+		lenBuf, err = ReadN(fc.r,4)
 		if err != nil {
 			return nil, 0, err
 		}
 		return lenBuf, uint64(fc.decoderConfig.ByteOrder.Uint32(lenBuf)), nil
 	case 8:
-		lenBuf := make([]byte, 8)
-		_, err = fc.r.Read(lenBuf)
+		lenBuf, err = ReadN(fc.r,8)
 		if err != nil {
 			return nil, 0, err
 		}
-		return lenBuf, uint64(fc.decoderConfig.ByteOrder.Uint64(lenBuf)), nil
+		return lenBuf, fc.decoderConfig.ByteOrder.Uint64(lenBuf), nil
 	default:
 		return nil, 0, ErrUnsupportedlength
 	}
