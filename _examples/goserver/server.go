@@ -42,7 +42,7 @@ func main() {
 		c := goframe.NewLengthFieldBasedFrameConn(encoderConfig, decoderConfig, conn)
 		go func(conn goframe.FrameConn) {
 			for {
-				b, err := c.ReadFrame()
+				b, err := conn.ReadFrame()
 				if err != nil {
 					if err == io.EOF {
 						return
@@ -52,7 +52,7 @@ func main() {
 				fmt.Println(string(b))
 
 				s := fmt.Sprintf("%d: %s", time.Now().UnixNano()/1e6, string(b))
-				c.WriteFrame([]byte(s))
+				conn.WriteFrame([]byte(s))
 			}
 		}(c)
 	}
