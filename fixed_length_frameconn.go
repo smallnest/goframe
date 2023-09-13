@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"net"
+	"sync"
 )
 
 type fixedLengthFrameConn struct {
@@ -11,6 +12,7 @@ type fixedLengthFrameConn struct {
 	c           net.Conn
 	r           *bufio.Reader
 	w           *bufio.Writer
+	m           sync.RWMutex
 }
 
 // NewFixedLengthFrameConn returns a fixed length Frame conn.
@@ -20,15 +22,20 @@ func NewFixedLengthFrameConn(frameLength int, conn net.Conn) FrameConn {
 		c:           conn,
 		r:           bufio.NewReader(conn),
 		w:           bufio.NewWriter(conn),
+		m:           sync.RWMutex{},
 	}
 }
 func (fc *fixedLengthFrameConn) ReadFrame() ([]byte, error) {
+	fc.m.RLock()
+	defer fc.m.RUnlock()
 	buf := make([]byte, fc.frameLength)
 	_, err := io.ReadFull(fc.r, buf)
 	return buf, err
 }
 
 func (fc *fixedLengthFrameConn) WriteFrame(p []byte) error {
+	fc.m.Lock()
+	defer fc.m.Unlock()
 	l := len(p)
 	if l%fc.frameLength != 0 {
 		return ErrUnexpectedFixedLength

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"sync"
 )
 
 type lengthFieldBasedFrameConn struct {
@@ -13,6 +14,7 @@ type lengthFieldBasedFrameConn struct {
 	c             net.Conn
 	r             *bufio.Reader
 	w             *bufio.Writer
+	m             sync.RWMutex
 }
 
 // EncoderConfig config for encoder.
@@ -51,12 +53,17 @@ func NewLengthFieldBasedFrameConn(encoderConfig EncoderConfig, decoderConfig Dec
 		c:             conn,
 		r:             bufio.NewReader(conn),
 		w:             bufio.NewWriter(conn),
+		m:             sync.RWMutex{},
 	}
 }
 
 func (fc *lengthFieldBasedFrameConn) ReadFrame() ([]byte, error) {
 	var header []byte
 	var err error
+
+	fc.m.RLock()
+	defer fc.m.RUnlock()
+
 	if fc.decoderConfig.LengthFieldOffset > 0 { //discard header(offset)
 		header, err = ReadN(fc.r, fc.decoderConfig.LengthFieldOffset)
 		if err != nil {
@@ -85,30 +92,33 @@ func (fc *lengthFieldBasedFrameConn) ReadFrame() ([]byte, error) {
 }
 
 func (fc *lengthFieldBasedFrameConn) getUnadjustedFrameLength() (lenBuf []byte, n uint64, err error) {
+	fc.m.RLock()
+	defer fc.m.RUnlock()
+
 	switch fc.decoderConfig.LengthFieldLength {
 	case 1:
 		b, err := fc.r.ReadByte()
 		return []byte{b}, uint64(b), err
 	case 2:
-		lenBuf, err = ReadN(fc.r,2)
+		lenBuf, err = ReadN(fc.r, 2)
 		if err != nil {
 			return nil, 0, err
 		}
 		return lenBuf, uint64(fc.decoderConfig.ByteOrder.Uint16(lenBuf)), nil
 	case 3:
-		lenBuf, err = ReadN(fc.r,3)
+		lenBuf, err = ReadN(fc.r, 3)
 		if err != nil {
 			return nil, 0, err
 		}
 		return lenBuf, readUint24(fc.decoderConfig.ByteOrder, lenBuf), nil
 	case 4:
-		lenBuf, err = ReadN(fc.r,4)
+		lenBuf, err = ReadN(fc.r, 4)
 		if err != nil {
 			return nil, 0, err
 		}
 		return lenBuf, uint64(fc.decoderConfig.ByteOrder.Uint32(lenBuf)), nil
 	case 8:
-		lenBuf, err = ReadN(fc.r,8)
+		lenBuf, err = ReadN(fc.r, 8)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -138,6 +148,9 @@ func (fc *lengthFieldBasedFrameConn) WriteFrame(p []byte) error {
 	}
 
 	var err error
+	fc.m.Lock()
+	defer fc.m.Unlock()
+
 	switch fc.encoderConfig.LengthFieldLength {
 	case 1:
 		if length >= 256 {
