@@ -3,6 +3,7 @@ package goframe
 import (
 	"bufio"
 	"net"
+	"sync"
 )
 
 type delimiterBasedFrameConn struct {
@@ -10,6 +11,7 @@ type delimiterBasedFrameConn struct {
 	c         net.Conn
 	r         *bufio.Reader
 	w         *bufio.Writer
+	m         sync.RWMutex
 }
 
 // NewDelimiterBasedFrameConn returns a Frame conn framed with delimiter.
@@ -19,6 +21,7 @@ func NewDelimiterBasedFrameConn(delimiter byte, conn net.Conn) FrameConn {
 		c:         conn,
 		r:         bufio.NewReader(conn),
 		w:         bufio.NewWriter(conn),
+		m:         sync.RWMutex{},
 	}
 }
 
@@ -28,6 +31,9 @@ func (fc *delimiterBasedFrameConn) ReadFrame() ([]byte, error) {
 		err      error
 		line, ln []byte
 	)
+
+	fc.m.RLock()
+	defer fc.m.RUnlock()
 
 	for isPrefix && err == nil {
 		line, err = fc.r.ReadBytes(fc.delimiter)
@@ -41,6 +47,9 @@ func (fc *delimiterBasedFrameConn) ReadFrame() ([]byte, error) {
 }
 
 func (fc *delimiterBasedFrameConn) WriteFrame(p []byte) error {
+	fc.m.Lock()
+	defer fc.m.Unlock()
+
 	_, err := fc.w.Write(p)
 	if err != nil {
 		return err
