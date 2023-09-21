@@ -92,9 +92,6 @@ func (fc *lengthFieldBasedFrameConn) ReadFrame() ([]byte, error) {
 }
 
 func (fc *lengthFieldBasedFrameConn) getUnadjustedFrameLength() (lenBuf []byte, n uint64, err error) {
-	fc.m.RLock()
-	defer fc.m.RUnlock()
-
 	switch fc.decoderConfig.LengthFieldLength {
 	case 1:
 		b, err := fc.r.ReadByte()
