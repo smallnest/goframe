@@ -14,7 +14,8 @@ type lengthFieldBasedFrameConn struct {
 	c             net.Conn
 	r             *bufio.Reader
 	w             *bufio.Writer
-	m             sync.RWMutex
+	rm            sync.Mutex
+	wm            sync.Mutex
 }
 
 // EncoderConfig config for encoder.
@@ -53,7 +54,8 @@ func NewLengthFieldBasedFrameConn(encoderConfig EncoderConfig, decoderConfig Dec
 		c:             conn,
 		r:             bufio.NewReader(conn),
 		w:             bufio.NewWriter(conn),
-		m:             sync.RWMutex{},
+		rm:            sync.Mutex{},
+		wm:            sync.Mutex{},
 	}
 }
 
@@ -61,8 +63,8 @@ func (fc *lengthFieldBasedFrameConn) ReadFrame() ([]byte, error) {
 	var header []byte
 	var err error
 
-	fc.m.RLock()
-	defer fc.m.RUnlock()
+	fc.rm.Lock()
+	defer fc.rm.Unlock()
 
 	if fc.decoderConfig.LengthFieldOffset > 0 { //discard header(offset)
 		header, err = ReadN(fc.r, fc.decoderConfig.LengthFieldOffset)
@@ -145,8 +147,8 @@ func (fc *lengthFieldBasedFrameConn) WriteFrame(p []byte) error {
 	}
 
 	var err error
-	fc.m.Lock()
-	defer fc.m.Unlock()
+	fc.wm.Lock()
+	defer fc.wm.Unlock()
 
 	switch fc.encoderConfig.LengthFieldLength {
 	case 1:
